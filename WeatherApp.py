@@ -3,33 +3,41 @@ import tkinter as tk
 from tkinter import ttk
 import python_weather
 import threading
+from PIL import Image, ImageTk
+import os
 
 # Get the weather
-
 async def get_weather(city):
     async with python_weather.Client(unit=python_weather.IMPERIAL) as client:
         weather = await client.get(city)
     return weather
 
-# Get city name 
-
+# Get city name
 def on_button_click():
     city = entry.get()
     
     def async_task():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        weather = loop.run_until_complete(get_weather(city))
-        loop.close()
-        
-        if weather:
-            temperature = weather.temperature
-            result_var.set(f"The current temperature in {city} is {temperature} degrees Fahrenheit.")
-        else:
-            result_var.set("Could not retrieve weather data. Please check the city name.")
-
+        try:
+            weather = asyncio.run(get_weather(city))
+            if weather:
+                temperature = weather.temperature
+                result_var.set(f"The current temperature in {city} is {temperature} degrees Fahrenheit.")
+            else:
+                result_var.set("Could not retrieve weather data. Please check the city name.")
+        except Exception as e:
+            result_var.set(f"An error occurred: {e}")
+    
+    create_image()
     thread = threading.Thread(target=async_task)
     thread.start()
+
+def create_image():
+    global sunny_image 
+    image_path = "sunny.png"
+    img = Image.open(image_path)
+    img = img.resize((100, 100))
+    sunny_image = ImageTk.PhotoImage(img)
+    label.config(image=sunny_image)
 
 # Create the main window
 root = tk.Tk()
@@ -51,4 +59,9 @@ result_var = tk.StringVar()
 result_label = ttk.Label(frm, textvariable=result_var)
 result_label.pack(padx=10, pady=10)
 
+# Initialize label for image display
+label = tk.Label(frm)
+label.pack(pady=(10, 0), padx=10, anchor="center")
+
 root.mainloop()
+
