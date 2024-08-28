@@ -5,7 +5,7 @@ import python_weather
 import threading
 from PIL import Image, ImageTk
 import os
-
+#
 # Get the weather
 async def get_weather(city):
     async with python_weather.Client(unit=python_weather.IMPERIAL) as client:
